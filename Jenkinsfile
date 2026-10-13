@@ -1,5 +1,5 @@
-// Verify that Jenkins executes pipeline steps on the dedicated build agent.
-// This pipeline only checks agent connectivity; it does not access GCP or AAP.
+// Real Ansible validation runs on the dedicated Jenkins Agent.
+// This pipeline does NOT deploy infrastructure or access GCP/AAP.
 pipeline {
     agent {
         label 'jenkins-agent'
@@ -11,44 +11,54 @@ pipeline {
     }
 
     stages {
-        stage('Checkout from GitHub') {
+        stage('Checkout') {
             steps {
                 checkout scm
-                echo 'Repository checkout completed on Jenkins Agent.'
             }
         }
 
-        stage('Verify Agent') {
+        stage('Verify Toolchain') {
             steps {
                 sh '''
-                    echo "Hostname:"
-                    hostname
-                    echo "Current user:"
-                    whoami
-                    echo "Working directory:"
-                    pwd
+                    python --version
+                    ansible-playbook --version
+                    ansible-lint --version
+                    yamllint --version
                 '''
             }
         }
 
-        stage('Verify Repository') {
+        stage('YAML Lint') {
             steps {
-                script {
-                    if (!fileExists('README.md')) {
-                        error('README.md is missing from the checked-out repository.')
-                    }
-                }
-                echo 'Repository verified on Jenkins Agent.'
+                sh 'yamllint .yamllint playbooks/validate_local.yml'
+            }
+        }
+
+        stage('Ansible Lint') {
+            steps {
+                sh 'ansible-lint playbooks/validate_local.yml'
+            }
+        }
+
+        stage('Ansible Syntax Check') {
+            steps {
+                sh 'ansible-playbook -i localhost, --syntax-check playbooks/validate_local.yml'
+            }
+        }
+
+        stage('Ansible Local Execution') {
+            steps {
+                sh 'ansible-playbook -i localhost, -c local playbooks/validate_local.yml'
             }
         }
     }
 
     post {
         success {
-            echo 'SUCCESS: GitHub-backed pipeline executed on dedicated Jenkins Agent.'
+            echo 'SUCCESS: Ansible YAML, lint, syntax, and local execution checks passed.'
         }
         failure {
-            echo 'FAILED: Review agent tools, connectivity, or console logs.'
+            echo 'FAILED: Review the console log to identify the validation error.'
         }
     }
 }
