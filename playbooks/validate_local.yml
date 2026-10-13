@@ -1,0 +1,8 @@
+---
+- name: Validate basic Ansible execution
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Confirm Ansible can run a local task
+      ansible.builtin.debug:
+        msg: "Ansible validation is operational"
