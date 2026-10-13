@@ -1,7 +1,9 @@
-// First GitHub-backed Jenkins pipeline for the Ansible automation lab.
-// This stage tests SCM connectivity only; it does not provision infrastructure.
+// Verify that Jenkins executes pipeline steps on the dedicated build agent.
+// This pipeline only checks agent connectivity; it does not access GCP or AAP.
 pipeline {
-    agent any
+    agent {
+        label 'jenkins-agent'
+    }
 
     options {
         skipDefaultCheckout(true)
@@ -12,34 +14,41 @@ pipeline {
         stage('Checkout from GitHub') {
             steps {
                 checkout scm
-                echo 'Repository checkout completed.'
+                echo 'Repository checkout completed on Jenkins Agent.'
             }
         }
 
-        stage('Verify repository') {
+        stage('Verify Agent') {
+            steps {
+                sh '''
+                    echo "Hostname:"
+                    hostname
+                    echo "Current user:"
+                    whoami
+                    echo "Working directory:"
+                    pwd
+                '''
+            }
+        }
+
+        stage('Verify Repository') {
             steps {
                 script {
                     if (!fileExists('README.md')) {
                         error('README.md is missing from the checked-out repository.')
                     }
                 }
-                echo 'README.md exists in the Jenkins workspace.'
-            }
-        }
-
-        stage('Prepare Ansible validation') {
-            steps {
-                echo 'SCM integration works. Real Ansible lint and tests will be added using a dedicated build agent.'
+                echo 'Repository verified on Jenkins Agent.'
             }
         }
     }
 
     post {
         success {
-            echo 'SUCCESS: Jenkins loaded its Jenkinsfile from GitHub and checked out the repository.'
+            echo 'SUCCESS: GitHub-backed pipeline executed on dedicated Jenkins Agent.'
         }
         failure {
-            echo 'FAILED: Inspect checkout or pipeline configuration in the Jenkins console.'
+            echo 'FAILED: Review agent tools, connectivity, or console logs.'
         }
     }
 }
