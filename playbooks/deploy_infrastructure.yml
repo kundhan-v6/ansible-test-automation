@@ -9,5 +9,10 @@
 
   roles:
     - role: gcp_network
+      vars:
+        gcp_network_project: "{{ gcp_project }}"
+        gcp_network_region: "{{ gcp_region }}"
+        gcp_network_vpc: "{{ network }}"
+        gcp_network_subnets: "{{ subnets }}"
       tags:
         - networking

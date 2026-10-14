@@ -1,10 +1,10 @@
 ---
-gcp_project: ""
-gcp_region: us-central1
+gcp_network_project: ""
+gcp_network_region: us-central1
 
-network:
+gcp_network_vpc:
   name: ""
   auto_create_subnetworks: false
   routing_mode: REGIONAL
 
-subnets: []
+gcp_network_subnets: []
