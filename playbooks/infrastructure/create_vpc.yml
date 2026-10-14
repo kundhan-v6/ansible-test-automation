@@ -1,0 +1,15 @@
+---
+- name: Create development VPC
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Ensure development VPC exists
+      google.cloud.gcp_compute_network:
+        name: dev-vpc
+        project: ansible-test-automation
+        auth_kind: application
+        auto_create_subnetworks: false
+        routing_config:
+          routing_mode: REGIONAL
+        state: present
