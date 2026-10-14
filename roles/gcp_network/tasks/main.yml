@@ -1,0 +1,35 @@
+---
+- name: Validate network configuration
+  ansible.builtin.assert:
+    that:
+      - gcp_project | length > 0
+      - network.name | length > 0
+      - network.routing_mode in ['REGIONAL', 'GLOBAL']
+      - subnets | length > 0
+      - subnets | map(attribute='name') | unique | length == subnets | length
+    fail_msg: Invalid or missing GCP network configuration.
+
+- name: Ensure VPC network exists
+  google.cloud.gcp_compute_network:
+    name: "{{ network.name }}"
+    project: "{{ gcp_project }}"
+    auto_create_subnetworks: "{{ network.auto_create_subnetworks }}"
+    routing_config:
+      routing_mode: "{{ network.routing_mode }}"
+    auth_kind: application
+    state: present
+  register: gcp_network_result
+
+- name: Ensure configured subnetworks exist
+  google.cloud.gcp_compute_subnetwork:
+    name: "{{ item.name }}"
+    project: "{{ gcp_project }}"
+    region: "{{ item.region | default(gcp_region) }}"
+    network: "{{ gcp_network_result }}"
+    ip_cidr_range: "{{ item.cidr }}"
+    private_ip_google_access: "{{ item.private_google_access }}"
+    auth_kind: application
+    state: present
+  loop: "{{ subnets }}"
+  loop_control:
+    label: "{{ item.name }}"

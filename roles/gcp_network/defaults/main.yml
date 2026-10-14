@@ -1,0 +1,10 @@
+---
+gcp_project: ""
+gcp_region: us-central1
+
+network:
+  name: ""
+  auto_create_subnetworks: false
+  routing_mode: REGIONAL
+
+subnets: []

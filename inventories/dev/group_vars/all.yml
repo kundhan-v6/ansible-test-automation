@@ -1,0 +1,14 @@
+---
+gcp_project: ansible-test-automation
+gcp_region: us-central1
+
+network:
+  name: dev-vpc
+  auto_create_subnetworks: false
+  routing_mode: REGIONAL
+
+subnets:
+  - name: dev-subnet-01
+    region: us-central1
+    cidr: 10.10.10.0/24
+    private_google_access: true
